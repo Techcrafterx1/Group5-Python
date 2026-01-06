@@ -1,119 +1,224 @@
 [
     {
-        "title": "English Studies",
+        "title": "General Studies",
         "questions": [
             {
-                "q": "A is for?",
-                "image": null,
+                "q": "In what year did Nigeria gain independence?",
+                "image": "",
                 "options": [
                     [
                         false,
-                        "Ball"
+                        "1957"
                     ],
                     [
                         true,
-                        "Apple"
+                        "1960"
                     ],
                     [
                         false,
-                        "Carrot"
+                        "1690"
                     ],
                     [
                         false,
-                        "Banana"
+                        "1963"
                     ]
                 ]
             },
             {
-                "q": "B is for?",
-                "image": null,
+                "q": "Which gas isn't found in the atmosphere? ",
+                "image": "",
                 "options": [
                     [
                         false,
-                        "Plantain"
+                        "Oxygen"
                     ],
                     [
                         false,
-                        "Watermelon"
+                        "Carbon dioxide"
                     ],
                     [
                         false,
-                        "Zebra"
+                        "Nitrogen"
                     ],
                     [
                         true,
-                        "Basket"
-                    ]
-                ]
-            }
-        ]
-    },
-    {
-        "title": "Mathematics",
-        "questions": [
-            {
-                "q": "1 + 1 =",
-                "image": null,
-                "options": [
-                    [
-                        false,
-                        "3"
-                    ],
-                    [
-                        false,
-                        "9"
-                    ],
-                    [
-                        false,
-                        "1"
-                    ],
-                    [
-                        true,
-                        "2"
+                        "Hydrogen"
                     ]
                 ]
             },
             {
-                "q": "Round up {pi} to the nearest 2 D.P",
-                "image": null,
+                "q": "What does GDP stand for?",
+                "image": "",
                 "options": [
                     [
+                        false,
+                        "General Domestic Policy"
+                    ],
+                    [
+                        false,
+                        "Government Developmetn plan"
+                    ],
+                    [
                         true,
-                        "3.14"
+                        "Gross Domestic Product"
                     ],
                     [
                         false,
-                        "3.1"
-                    ],
-                    [
-                        false,
-                        "3"
-                    ],
-                    [
-                        false,
-                        "3.143"
+                        "General Development Program"
                     ]
                 ]
             },
             {
-                "q": "What determines an Even function in sinusoidal fourier series? When ...",
-                "image": null,
+                "q": "Which planet in our solar system has the most moons?",
+                "image": "",
+                "options": [
+                    [
+                        true,
+                        "Saturn"
+                    ],
+                    [
+                        false,
+                        "Jupiter"
+                    ],
+                    [
+                        false,
+                        "Venus"
+                    ],
+                    [
+                        false,
+                        "Pluto"
+                    ]
+                ]
+            },
+            {
+                "q": "Which organelle is known as the powerhouse of the cell?",
+                "image": "",
                 "options": [
                     [
                         false,
-                        "f(x) = 0"
+                        "Nucleus"
+                    ],
+                    [
+                        false,
+                        "Endoplasmic reticulum"
+                    ],
+                    [
+                        false,
+                        "Golgi body"
                     ],
                     [
                         true,
-                        "f(x) = f(-x)"
+                        "Mitochondria"
+                    ]
+                ]
+            },
+            {
+                "q": "Who is the current secretary-general of the UN?",
+                "image": "",
+                "options": [
+                    [
+                        true,
+                        "Antonio Guterres"
                     ],
                     [
                         false,
-                        "f(x) = -g(x)"
+                        "Ban Ki-moon"
                     ],
                     [
                         false,
-                        "The derivatives are discontinuous"
+                        "Kofi Annan"
+                    ],
+                    [
+                        false,
+                        "Lemme Buga"
+                    ]
+                ]
+            },
+            {
+                "q": "Who wrote \"Things Fall Apart\"?",
+                "image": "",
+                "options": [
+                    [
+                        false,
+                        "Wole Soyinka"
+                    ],
+                    [
+                        false,
+                        "James Gunn"
+                    ],
+                    [
+                        true,
+                        "Chinua Achebe"
+                    ],
+                    [
+                        false,
+                        "Ladi Kwaali"
+                    ]
+                ]
+            },
+            {
+                "q": "What is the chemical symbol for gold?",
+                "image": "",
+                "options": [
+                    [
+                        false,
+                        "Gd"
+                    ],
+                    [
+                        false,
+                        "Gg"
+                    ],
+                    [
+                        true,
+                        "Au"
+                    ],
+                    [
+                        false,
+                        "Ag"
+                    ]
+                ]
+            },
+            {
+                "q": "What's the capital of Canada?",
+                "image": "",
+                "options": [
+                    [
+                        false,
+                        "Toronto"
+                    ],
+                    [
+                        false,
+                        "Vancouver"
+                    ],
+                    [
+                        true,
+                        "Ottawa"
+                    ],
+                    [
+                        false,
+                        "Monaco"
+                    ]
+                ]
+            },
+            {
+                "q": "Which planet is known as the Red Planet?",
+                "image": "",
+                "options": [
+                    [
+                        false,
+                        "Earth"
+                    ],
+                    [
+                        false,
+                        "Mercury"
+                    ],
+                    [
+                        true,
+                        "Mars"
+                    ],
+                    [
+                        false,
+                        "Neptune"
                     ]
                 ]
             }
