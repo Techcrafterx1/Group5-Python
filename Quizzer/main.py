@@ -31,13 +31,13 @@ def save(data, file):
 
 # function to add results into loaded results
 def add(new_result):
-    results = load('/data/results.json')
+    results = load('./data/results.json')
     results.append(new_result)
-    save(results, '/data/results.json')
+    save(results, './data/results.json')
 
 # function to add new quizes into loaded quizes
 def addq(new_quiz):
-    results = load('/data/quizes.json')
+    results = load('./data/quizes.json')
     results.append(new_quiz)
     save(results, './data/quizes.json')
 
@@ -60,7 +60,7 @@ def select_image():
         S.copy(file_path, dest_path)
         return dest_path
 
-quizes =  load('/data/quizes.json')
+quizes =  load('./data/quizes.json')
 
 to_use = []
 
@@ -324,7 +324,7 @@ def Quiz_page(quiz_id):
     widgets.append(btn_previous)
     btn_submit = [T.Button(header_menu_frame[0], height=5, width=10, text='Submit', foreground='white', highlightthickness=0, activebackground='dark blue', borderwidth=0, bg='green', command=lambda:submit()), 10, 2.5, 'right']
     widgets.append(btn_submit)
-    btn_next = [T.Button(header_menu_frame[0], height=5, width=10, text='➡', foreground='black', highlightthickness=0, activebackground='dark blue', borderwidth=0, bg='light gray', command=lambda: tfel()), 10, 2.5, 'right']
+    btn_next = [T.Button(header_menu_frame[0], height=5, width=10, text='➡', foreground='black', highlightthickness=0, activebackground='dark blue', borderwidth=0, bg='light gray', command=lambda: right()), 10, 2.5, 'right']
     widgets.append(btn_next)
     def left():
         global q_no
@@ -368,7 +368,7 @@ def Quiz_page(quiz_id):
             present_test.clear()
             # time.stop()
 
-    def tfel():
+    def right():
         global q_no
         if q_no == len(to_use[quiz_id - 1]['questions']):
            submit = Mb.askyesno('Submit?')
@@ -609,7 +609,7 @@ def Create_page():
             # image_label[0].config(image=None)
             # image_label[0].image = None
 
-    def thgir():
+    def left():
         global q_no
         if q_no != 1:
             q_no = q_no - 1
@@ -671,7 +671,7 @@ def Create_page():
     widgets.append(btn_back)
     btn_remove = [T.Button(header_menu_frame[0], height=5, width=10, text='-', command=lambda:remove()), 10, 2.5, 'left']
     widgets.append(btn_remove)
-    btn_previous = [T.Button(header_menu_frame[0], height=5, width=10, text='<', foreground='black', highlightthickness=0, activebackground='dark blue', borderwidth=0, bg='light gray', command=lambda:thgir()), 10, 2.5, 'left']
+    btn_previous = [T.Button(header_menu_frame[0], height=5, width=10, text='<', foreground='black', highlightthickness=0, activebackground='dark blue', borderwidth=0, bg='light gray', command=lambda:left()), 10, 2.5, 'left']
     widgets.append(btn_previous)
     btn_done = [T.Button(header_menu_frame[0], height=5, width=10, text='Done', foreground='white', highlightthickness=0, activebackground='dark blue', borderwidth=0, bg='green', command=lambda:done()), 10, 2.5, 'right']
     widgets.append(btn_done)
