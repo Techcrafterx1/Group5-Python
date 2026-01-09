@@ -1,3 +1,4 @@
+# importing all libraries
 import tkinter as T
 from tkinter import messagebox as Mb
 from matplotlib.figure import Figure as M
@@ -9,30 +10,38 @@ import threading as Th
 from tkinter import filedialog as Fd
 from PIL import Image as I, ImageTk as It
 import shutil as S
+from datetime import datetime as D
+import scipy.constants as Sc
 
+# initializing root GUI
 root = T.Tk()
 root.title('    Quizzer')
 root.geometry('900x600')
 root.resizable(False, False)
 root.iconbitmap('./assets/ico_converted.ico')
 
+# initializing widgets container and global question state
 widgets = []
 q_no = 1
 
+# function to save results and new quizes
 def save(data, file):
     with open(file, 'w') as file:
         J.dump(data, file, indent=4)
 
+# function to add results into loaded results
 def add(new_result):
-    results = load('results.json')
+    results = load('/data/results.json')
     results.append(new_result)
-    save(results, 'results.json')
+    save(results, '/data/results.json')
 
+# function to add new quizes into loaded quizes
 def addq(new_quiz):
-    results = load('quizes.json')
+    results = load('/data/quizes.json')
     results.append(new_quiz)
-    save(results, 'quizes.json')
+    save(results, './data/quizes.json')
 
+# function to load saved files
 def load(file):
     if not o.path.exists(file):
         with open(file, 'w') as f:
@@ -51,7 +60,7 @@ def select_image():
         S.copy(file_path, dest_path)
         return dest_path
 
-quizes =  load('quizes.json')
+quizes =  load('/data/quizes.json')
 
 to_use = []
 
@@ -59,6 +68,7 @@ for q in quizes:
     to_use.append(
         {
          'title':q['title'],
+         't': q['t'],
          'questions':[]   
         }
     )
@@ -70,7 +80,7 @@ for q in quizes:
             'selected_option':T.StringVar(value='z')
         })
 
-results = load('results.json')
+results = load('./data/results.json')
 
 def unpack(widgets:list):
     for w in widgets:
@@ -91,59 +101,52 @@ def clear(widgets:list):
     widgets.clear()
 
 class Timer():
-    def __init__(self, total, updateCallback=None, finishCallback=None):
+    def __init__(self, mins, on_tick = None, on_finish = None):
+        self.total = int(mins * 60)
+        self.remaining = self.total
         self.running = False
+        self._thread = None
         self.start_time = None
-        self.total_time = int(total * 60)
-        self.thread = None
-        self.elapsed = 0
-        self.update = updateCallback
-        self.finish = finishCallback
-        self.root = root
-        self.timerr = [T.Toplevel(root)]
-        self.timerr[0].title('Timer')
-        widgets.append(self.timerr)
-        self.time_label = [T.Label(self.timerr[0], text='', font=('Arial', 32))]
-        widgets.append(self.time_label)
-    
+        self.end_time = None
+        self.on_tick = on_tick
+        self.on_finish = on_finish        
+
     def start(self):
         if not self.running:
             self.running = True
-            self.thread = Th.Thread(target=self._run,daemon=True)
-            self.thread.start()
-
+            self.start_time = Tm.time()
+            self._thread = Th.Thread(target=self._run)
+            self._thread.daemon = True
+            self._thread.start()
+        
     def _run(self):
-        self.start_time = Tm.time()
-        while self.elapsed < self.total_time and self.running:
+        while self.running and self.remaining > 0:
             Tm.sleep(1)
-            self.elapsed = int(Tm.time() - self.start_time)
-            self._update()
-        self._finish()
-
-    def _update(self):
-        pre = self.total_time - self.elapsed
-        if pre > 60:
-            minm = int(pre/60)
-            secs = pre%60
-            timely = f'{minm} : {secs}'
-        else:
-            timely = f'00 : {pre}'
-        self.time_label[0].config(text=f'{timely}')
-        return timely
-
-    def _finish(self):
-        if self.elapsed > 60:
-            minm = int(self.elapsed/60)
-            secs = self.elapsed%60
-            timely = f'{minm} : {secs}'
-        else:
-            timely = f'00 : {self.elapsed}'
+            self.remaining -= 1
+            if self.on_tick:
+                minutes = self.remaining//60
+                seconds = self.remaining % 60
+                tick = f'{minutes:02}:{seconds:02}'
+                self.on_tick(tick)
+        if  self.on_finish:
+            self.end_time = Tm.time()
+            self.on_finish(self.elapsed())
+            self.running = False
 
     def stop(self):
-        if self.running:
-            self.running = False
-            elapsed = int(Tm.time() - self.start_time)
-            return elapsed
+        self.running = False
+        self.end_time = Tm.time()
+
+    def elapsed(self):
+        minutes = self.total//60
+        seconds = self.total % 60
+        return f'{minutes:02}:{seconds:02}'
+    
+    def get_time(self):
+        used = self.total - self.remaining
+        minutes = used//60
+        seconds = used % 60
+        return f'{minutes:02}:{seconds:02}'
 
 def Home_page():
     clear(widgets)
@@ -155,7 +158,7 @@ def Home_page():
     logo_label = [T.Label(header_frame[0], image=photo, bg='light blue'), (30, 0), 0, 'left']
     logo_label[0].image = photo
     widgets.append(logo_label)
-    home_frame = [T.Frame(root, height=400, width=850,  bg='light yellow'), 0, 25]
+    home_frame = [T.Frame(root, height=400, width=850, bd=1, relief='solid', bg='light yellow'), 0, 25]
     widgets.append(home_frame)
     credit_frame = [T.Frame(root, height=50, width=900, bg='blue'), 0, 0]
     widgets.append(credit_frame)
@@ -171,19 +174,19 @@ def Home_page():
     take_img = I.open('./assets/tae.png')
     take_img = take_img.resize((50, 50))
     t_photo = It.PhotoImage(take_img)
-    take_btn = [T.Button(take_btn_frame[0], image=t_photo, command= lambda: Quiz_menu(), highlightthickness=0, activebackground='dark red', borderwidth=0, bg='red'), 2.5, (25, 0)]
+    take_btn = [T.Button(take_btn_frame[0], image=t_photo, command= lambda: Quiz_menu(), highlightthickness=0, cursor='hand2', activebackground='dark red', borderwidth=0, bg='red'), 2.5, (25, 0)]
     take_btn[0].image = t_photo
     widgets.append(take_btn)
     res_img = I.open('./assets/res.png')
     res_img = res_img.resize((50, 50))
     r_photo = It.PhotoImage(res_img)
-    results_btn = [T.Button(results_btn_frame[0], image=r_photo, command= lambda: Results_menu(), highlightthickness=0, activebackground='dark red', borderwidth=0, bg='red'), 2.5, (25, 0)]
+    results_btn = [T.Button(results_btn_frame[0], image=r_photo, command= lambda: Results_menu(), highlightthickness=0, cursor='hand2', activebackground='dark red', borderwidth=0, bg='red'), 2.5, (25, 0)]
     results_btn[0].image = r_photo
     widgets.append(results_btn)
     cre_img = I.open('./assets/add.png')
     cre_img = cre_img.resize((50, 50))
     c_photo = It.PhotoImage(cre_img)
-    create_btn = [T.Button(create_btn_frame[0], image=c_photo, command= lambda: Create_page(), highlightthickness=0, activebackground='dark red', borderwidth=0, bg='red'), 2.5, (25, 0)]
+    create_btn = [T.Button(create_btn_frame[0], image=c_photo, command= lambda: Create_page(), highlightthickness=0, cursor='hand2', activebackground='dark red', borderwidth=0, bg='red'), 2.5, (25, 0)]
     create_btn[0].image = c_photo
     widgets.append(create_btn)
     creators = [T.Label(credit_frame[0], text='Musa Abdulrahman | | Adepoju Habeeb | | Achadu Anibe | | Adekeye Adewale | | Ayanbisi Abdulhaleem | | Adebiyi David | | Lawal Ireoluwa', foreground='white', bg='blue'), 0, 15]
@@ -200,7 +203,7 @@ def Quiz_menu():
     logo_label = [T.Label(header_frame[0], image=photo, bg='light blue'), (30, 0), 0, 'left']
     logo_label[0].image = photo
     widgets.append(logo_label)
-    menu_frame = [T.Canvas(root, height=475, width=850, bg='light yellow'), 0, 20]
+    menu_frame = [T.Canvas(root, height=475, width=850, bd=1, relief='solid', bg='light yellow'), 0, 20]
     # canvas = menu_frame[0]
     # scrollbar = [T.Scrollbar(root, orient='vertical', command=canvas.yview)]
     # scrollframe = [T.Frame(canvas)]
@@ -219,7 +222,7 @@ def Quiz_menu():
     widgets.append(header_menu_label)
     q = 1
     for quiz in to_use:
-        quiz_btn = [T.Button(menu_frame[0], text=f'Quiz {q}                                                                  Title: {quiz['title']}                                                                  Number of Questions: {len(quiz['questions'])}', foreground='white', highlightthickness=0, activebackground='dark blue', height=5, width= 115, borderwidth=0, bg='gray', command=lambda q=q: Quiz_page(q)), 0, (20, 5)]
+        quiz_btn = [T.Button(menu_frame[0], text=f'Quiz {q}Title: {quiz['title']}                         Time allowed: {quiz['t']}{'min' if quiz['t'] == 1 else 'mins'}                         Number of Questions: {len(quiz['questions'])}', foreground='white', bd=1, relief='solid', highlightthickness=0, activebackground='dark blue', height=3, width= 115, cursor='hand2', bg='gray', command=lambda q=q: Quiz_page(q)), 0, (20, 5)]
         widgets.append(quiz_btn)
         q = q + 1
     unpack(widgets)
@@ -234,7 +237,7 @@ def Results_menu():
     logo_label = [T.Label(header_frame[0], image=photo, bg='light blue'), (30, 0), 0, 'left']
     logo_label[0].image = photo
     widgets.append(logo_label)
-    menu_frame = [T.Canvas(root, height=475, width=850, bg='light yellow'), 0, 20]
+    menu_frame = [T.Canvas(root, height=475, width=850, bd=1, relief='solid', bg='light yellow'), 0, 20]
     # canvas = menu_frame[0]
     # scrollbar = [T.Scrollbar(root, orient='vertical', command=canvas.yview)]
     # scrollframe = [T.Frame(canvas)]
@@ -253,7 +256,7 @@ def Results_menu():
     widgets.append(header_menu_label)
     r = 1
     for result in results:
-        result_btn = [T.Button(menu_frame[0], text=f'Result {r}                                    Title: {result['title']};                                    Score: {result['result']};                                     Date: {result['date']}', foreground='black', highlightthickness=0, activebackground='dark blue', borderwidth=0, bg='yellow', height=5, width= 115, command=lambda result=result: Result_page(result)), 0, (20, 5)]
+        result_btn = [T.Button(menu_frame[0], text=f'Result {r} Title: {result['title']}                            Score: {result['result']}                            Time: {result['time']}                            Date: {result['date']}', bd=1, relief='solid', foreground='black', highlightthickness=0, activebackground='dark blue', cursor='hand2', borderwidth=1, bg='yellow', height=3, width= 115, command=lambda result=result: Result_page(result)), 0, (20, 5)]
         widgets.append(result_btn)
         r = r + 1
     unpack(widgets)
@@ -262,7 +265,7 @@ def Create_menu():
     clear(widgets)
     header_frame = [T.Frame(root, height=100, width=900, bg='light blue'), 0, 0]
     widgets.append(header_frame)
-    menu_frame = [T.Frame(root, height=475, width=850, bg='light yellow'), 0, 20]
+    menu_frame = [T.Frame(root, height=475, width=850, bd=1, relief='solid', bg='light yellow'), 0, 20]
     widgets.append(menu_frame)
     header_menu_frame = [T.Frame(menu_frame[0], height=50, width=850, bg='blue')]
     widgets.append(header_menu_frame)
@@ -286,22 +289,36 @@ def Create_menu():
     unpack(widgets)
 
 def Quiz_page(quiz_id):
-    # time = Timer(quizes[quiz_id - 1]['time'])
     clear(widgets)
     present_test = []
     header_frame = [T.Frame(root, height=100, width=900, bg='light blue'), 0, 0]
     widgets.append(header_frame)
+    time = [T.Label(header_frame[0], font=('Ariel', 24)), 40, 0, 'right']
+    widgets.append(time)
+    def tick(remaining):
+        if time[0]:
+            time[0].config(text=f'{remaining}')
+
+    def finished(elapsed):
+        submit = Mb.showinfo('Time Up', 'You are out of time')
+        for z in to_use[quiz_id - 1]['questions']:
+            z['selected_option'] = T.StringVar(value='z')
+        compile_result(quiz_id - 1)
+        q_no = 1
+        present_test.clear()
+
+    Tmer = Timer(quizes[quiz_id - 1]['t'], tick, finished)
     logo_img = I.open('./assets/ico.png')
     logo_img = logo_img.resize((50, 65))
     photo = It.PhotoImage(logo_img)
     logo_label = [T.Label(header_frame[0], image=photo, bg='light blue'), (30, 0), 0, 'left']
     logo_label[0].image = photo
     widgets.append(logo_label)
-    menu_frame = [T.Frame(root, height=475, width=850, bg='light yellow'), 0, 20]
+    menu_frame = [T.Frame(root, height=475, width=850, bd=1, relief='solid', bg='light yellow'), 0, 20]
     widgets.append(menu_frame)
     header_menu_frame = [T.Frame(menu_frame[0], height=50, width=850, bg='blue')]
     widgets.append(header_menu_frame)
-    btn_back = [T.Button(header_menu_frame[0], height=5, width=10, text='Back', foreground='white', highlightthickness=0, activebackground='dark blue', borderwidth=0, bg='red', command=lambda: Quiz_menu()), 10, 2.5, 'left']
+    btn_back = [T.Button(header_menu_frame[0], height=5, width=10, text='Back', foreground='white', highlightthickness=0, activebackground='dark blue', borderwidth=0, bg='red', command=lambda: back()), 10, 2.5, 'left']
     widgets.append(btn_back)
     btn_previous = [T.Button(header_menu_frame[0], height=5, width=10, text='⬅', foreground='black', highlightthickness=0, activebackground='dark blue', borderwidth=0, bg='light gray', command=lambda: left()), 10, 2.5, 'left']
     widgets.append(btn_previous)
@@ -315,6 +332,7 @@ def Quiz_page(quiz_id):
             confirm = Mb.askyesno('Are you sure you want to leave?')
 
             if confirm:
+                Tmer.stop()
                 q_no = 1
                 Quiz_menu()
 
@@ -330,9 +348,19 @@ def Quiz_page(quiz_id):
             option_label4[0].config(text=f'{to_use[quiz_id - 1]['questions'][q_no - 1]['options'][3][1]}')
             option_check4[0].config(variable=present_test[q_no - 1])
 
+    def back():
+        global q_no
+        confirm = Mb.askyesno('Leave?', 'You are about to quit the quiz \n Proceed?')
+        if confirm:
+            Tmer.stop()
+            q_no = 1
+            Quiz_menu()
+
     def submit():
-        submit = Mb.askyesno('Submit?')
+        global q_no
+        submit = Mb.askyesno('Submit?', 'You are about to submit \n Proceed?')
         if submit:
+            # Tmer.get_time()
             for z in to_use[quiz_id - 1]['questions']:
                 z['selected_option'] = T.StringVar(value='z')
             compile_result(quiz_id - 1)
@@ -430,17 +458,22 @@ def Quiz_page(quiz_id):
             if boolean:
                 total_result = total_result + 1
 
+        today = D.today()
+        formatted = today.strftime("%d/%m/%Y")
+
         result_percentage =f'{int(total_result/len(to_use[quiz_id]['questions']) * 100)}%'
         new_results =  {
             'title': to_use[quiz_id]['title'],
             'result': result_percentage,
-            'date': '23/12/2025',
+            'time': Tmer.get_time(),
+            'date': formatted,
             'options': check_answers
         }
 
         results.append(new_results)
         add(new_results)
         Result_page(results[-1])
+    Tmer.start()
     # time.start()
 
 def Result_page(result):
@@ -453,7 +486,7 @@ def Result_page(result):
     logo_label = [T.Label(header_frame[0], image=photo, bg='light blue'), (30, 0), 0, 'left']
     logo_label[0].image = photo
     widgets.append(logo_label)
-    menu_frame = [T.Frame(root, height=475, width=850, bg='light yellow'), 0, 20]
+    menu_frame = [T.Frame(root, height=475, width=850, bd=1, relief='solid', bg='light yellow'), 0, 20]
     widgets.append(menu_frame)
     header_menu_frame = [T.Frame(menu_frame[0], height=50, width=850, bg='blue')]
     widgets.append(header_menu_frame)
@@ -477,6 +510,8 @@ def Result_page(result):
     ax.axis('equal')
     result_canvas = [F(fig, master=menu_frame[0]).get_tk_widget(), (0, 50), (30, 0)]
     widgets.append(result_canvas)
+    time = [T.Label(questions_frame[0], font=('Ariel', 16), text=f'Time used: {result['time']}s'), 0, 0, 'bottom']
+    widgets.append(time)
     for ix, answers in enumerate(result['options']):
         text = ''
         color = ''
@@ -528,10 +563,12 @@ def Create_page():
         global q_no
         quiz = {
             'title':title_label[0].get(),
+            't': int(time[0].get()),
             'questions':questions
         }
         addq(quiz)
         quizes.append(quiz)
+        to_use.append(quiz)
         Quiz_menu()
         q_no = 1
     
@@ -612,13 +649,21 @@ def Create_page():
 
     header_frame = [T.Frame(root, height=100, width=900, bg='light blue'), 0, 0]
     widgets.append(header_frame)
+    time_frame = [T.Frame(header_frame[0], width=300, height=50, bg='light blue'), 40, 0, 'right']
+    widgets.append(time_frame)
+    time = [T.Entry(time_frame[0], font=('Ariel', 24), width=5), 0, 0, 'right']
+    widgets.append(time)
+    time_label = [T.Label(time_frame[0], text='Time:', foreground='blue', bg='light blue', font=('Ariel', 24)), 0, 0, 'left']
+    widgets.append(time_label)
+    time_label1 = [T.Label(time_frame[0], text='(in minutes)', foreground='blue', bg='light blue', font=('Ariel', 14)), 0, 0, 'left']
+    widgets.append(time_label1)
     logo_img = I.open('./assets/ico.png')
     logo_img = logo_img.resize((50, 65))
     photo = It.PhotoImage(logo_img)
     logo_label = [T.Label(header_frame[0], image=photo, bg='light blue'), (30, 0), 0, 'left']
     logo_label[0].image = photo
     widgets.append(logo_label)
-    menu_frame = [T.Frame(root, height=475, width=850, bg='light yellow'), 0, 20]
+    menu_frame = [T.Frame(root, height=475, width=850, bd=1, relief='solid', bg='light yellow'), 0, 20]
     widgets.append(menu_frame)
     header_menu_frame = [T.Frame(menu_frame[0], height=50, width=850, bg='blue')]
     widgets.append(header_menu_frame)
@@ -634,11 +679,15 @@ def Create_page():
     widgets.append(btn_add)
     btn_next = [T.Button(header_menu_frame[0], height=5, width=10, text='>', foreground='black', highlightthickness=0, activebackground='dark blue', borderwidth=0, bg='light gray', command=lambda:right()), 10, 2.5, 'right']
     widgets.append(btn_next)
-    title_label = [T.Entry(header_menu_frame[0], width=40), 10, 15, 'right']
+    title_frame = [T.Frame(header_menu_frame[0], width=250, height=50, bg='blue'), 10, 15, 'right']
+    widgets.append(title_frame)
+    title_label = [T.Entry(title_frame[0], width=30), 0, 0, 'right']
     widgets.append(title_label)
+    title_entry = [T.Label(title_frame[0], bg='blue', fg='white', text='Quiz Title:'), 5, 0, 'left']
+    widgets.append(title_entry)
     label = [T.Label(menu_frame[0], text=f'Question {q_no}:', bg='light yellow', font=15), 0, (5, 0)]
     widgets.append(label)
-    question_label = [T.Entry(menu_frame[0], font=32, width=75, bg='light yellow'), (0, 00), (20, 0), 'top']
+    question_label = [T.Entry(menu_frame[0], width=100, bg='light yellow'), (0, 00), (20, 0), 'top']
     widgets.append(question_label)
     options_frame = [T.Frame(menu_frame[0], bg='light yellow', height=275, width=400), (0, 400), 15, 'bottom']
     widgets.append(options_frame)
@@ -666,28 +715,28 @@ def Create_page():
     widgets.append(option_label3)
     option_label4 = [T.Entry(option_frame4[0], width=40, bg='light yellow'), 10, 0, 'left']
     widgets.append(option_label4)
-    # image_frame = [T.Frame(menu_frame[0])]
+    image_frame = [T.Frame(menu_frame[0])]
     # image_frame[0].place(x=425, y=150, width=400, height=275, in_=menu_frame[0])
     # # widgets.append(image_frame)
-    # image_label = [T.Label(image_frame[0], height=275, width=400)]
+    image_label = [T.Label(image_frame[0], height=275, width=400)]
     # widgets.append(image_label)
-    # image_btn = [T.Button(menu_frame[0], command=lambda: dspl(image_path, t=1), text=' Add Image')]
+    image_btn = [T.Button(menu_frame[0], command=lambda: dspl(image_path, t=1), text=' Add Image')]
     # # widgets.append(image_btn)
     # image_btn[0].place(x=425, y=425)
 
-    # def dspl(fu, t=0):
-    #     if t == 0:
-    #         img = I.open(fu)
-    #         img = img.resize((400, 250))
-    #         photo = It.PhotoImage(img)
-    #         image_label[0].config(image=photo)
-    #         image_label[0].image = photo
-    #     if t == 1:
-    #         img = I.open(select_image())
-    #         img = img.resize((400, 250))
-    #         photo = It.PhotoImage(img)
-    #         image_label[0].config(image=photo)
-    #         image_label[0].image = photo
+    def dspl(fu, t=0):
+        if t == 0:
+            img = I.open(fu)
+            img = img.resize((400, 250))
+            photo = It.PhotoImage(img)
+            image_label[0].config(image=photo)
+            image_label[0].image = photo
+        if t == 1:
+            img = I.open(select_image())
+            img = img.resize((400, 250))
+            photo = It.PhotoImage(img)
+            image_label[0].config(image=photo)
+            image_label[0].image = photo
     unpack(widgets)
 
 Home_page()
