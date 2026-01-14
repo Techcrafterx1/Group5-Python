@@ -117,7 +117,7 @@ class Timer():
     '''
     The timer class for setting the time duration for a quiz.
     The timer operates on a different thread.
-    .start() method starts the tiemr after it's been created.
+    .start() method starts the timer after it's been created.
     .stop() stops it
     .get_time() is used to get the time used up at any point
     .elapsed() is to get the time after its finished.
